@@ -1,7 +1,26 @@
 local mod = "ALT"
 
+-- Citrix needs to receive modifier shortcuts before the local compositor.
+-- An empty submap leaves keys unbound, so they pass through to the session.
+local citrix_submap = "citrix"
+
+hl.define_submap(citrix_submap, function()
+    hl.bind("SUPER + ESCAPE", hl.dsp.submap("reset"))
+end)
+
+local function update_citrix_submap(window)
+    local submap = window and window.class == "Wfica" and citrix_submap or "reset"
+    hl.dispatch(hl.dsp.submap(submap))
+end
+
+hl.on("window.active", update_citrix_submap)
+
+-- Do not dispatch a submap while Hyprland is still constructing its event
+-- manager. Hyprland 0.55.4 aborts if setSubmap emits IPC during config load;
+-- the first window.active event establishes the correct submap immediately.
+
 -- Applications and session controls.
-hl.bind(mod .. " + I", hl.dsp.exec_cmd("uwsm app -- ghostty"))
+hl.bind(mod .. " + I", hl.dsp.exec_cmd("uwsm-app -- ghostty"))
 hl.bind(mod .. " + SPACE", hl.dsp.exec_cmd("vicinae toggle"))
 hl.bind(mod .. " + Q", hl.dsp.window.close())
 hl.bind(mod .. " + V", hl.dsp.window.float({ action = "toggle" }))
@@ -10,6 +29,28 @@ hl.bind(mod .. " + SHIFT + M", hl.dsp.exec_cmd("uwsm stop"))
 hl.bind("SUPER + L", hl.dsp.exec_cmd("noctalia msg session lock"))
 hl.bind("SUPER + V", hl.dsp.exec_cmd("noctalia msg panel-toggle clipboard"))
 hl.bind("Print", hl.dsp.exec_cmd("noctalia msg screenshot-region"))
+
+-- GTK reserves Ctrl+. for its emoji picker. Only translate it to Zen's private
+-- compact-mode shortcut while Zen is focused; otherwise forward Ctrl+.
+-- unchanged to the active application.
+hl.bind("CONTROL + period", function()
+    local window = hl.get_active_window()
+    local is_zen = window and string.find(string.lower(window.class), "zen", 1, true)
+
+    if is_zen then
+        hl.dispatch(hl.dsp.send_shortcut({
+            mods = "CONTROL ALT SHIFT",
+            key = "F12",
+            window = "activewindow",
+        }))
+    else
+        hl.dispatch(hl.dsp.send_shortcut({
+            mods = "CONTROL",
+            key = "period",
+            window = "activewindow",
+        }))
+    end
+end)
 
 -- Focus and move windows.
 for _, direction in ipairs({ "left", "right", "up", "down" }) do
@@ -20,7 +61,7 @@ end
 -- Workspaces 1–10, with 0 representing workspace 10.
 for workspace = 1, 10 do
     local key = workspace % 10
-    hl.bind(mod .. " + " .. key, hl.dsp.focus({ workspace = workspace }))
+    hl.bind(mod .. " + " .. key, hl.dsp.focus({ workspace = workspace, on_current_monitor = true }))
     hl.bind(mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = workspace }))
 end
 

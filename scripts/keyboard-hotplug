@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -u
+
+builtin_keyboard="at-translated-set-2-keyboard"
+external_keyboard="/dev/input/by-id/usb-Bastard_Keyboards_Dilemma__3x5+3__Assembled_E46484C0D31F49230000000000000000-event-kbd"
+dell_display="Dell Inc. DELL U2723QE BQQG8H3"
+
+sync_keyboard() {
+    local enabled=true
+    if [[ -e "$external_keyboard" ]] &&
+        ! hyprctl monitors -j | jq -e --arg display "$dell_display" \
+            'any(.[]; .description == $display)' >/dev/null; then
+        enabled=false
+    fi
+
+    hyprctl eval "hl.device({ name = '$builtin_keyboard', enabled = $enabled })" >/dev/null
+}
+
+sync_keyboard
+
+udevadm monitor --udev --subsystem-match=input | while IFS= read -r _; do
+    sync_keyboard
+done

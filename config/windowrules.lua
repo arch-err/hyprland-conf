@@ -1,13 +1,28 @@
 -- Application opacity.
 hl.window_rule({
     name = "opacity-90",
-    match = { class = [[^(brave-chatgpt\.com__-Default|papra|t3code)$]] },
-    opacity = 0.9,
+    match = { class = [[^(brave-chatgpt\.com__-Default|papra)$]] },
+    opacity = 0.8,
+})
+
+hl.window_rule({
+    name = "opacity-t3code",
+    match = { class = [[^(t3code|com\.t3tools\.T3Code)$]] },
+    opacity = 0.8,
 })
 
 hl.window_rule({
     name = "opacity-80",
-    match = { class = "^(dev.noctalia.Noctalia.Settings|signal|org.kde.kdeconnect.sms|org.kde.kdeconnect.app|spotify|obsidian)$" },
+    match = { class = "^(dev.noctalia.Noctalia|signal|org.kde.kdeconnect.sms|org.kde.kdeconnect.app|spotify|obsidian)$" },
+    opacity = 0.8,
+})
+
+hl.window_rule({
+    name = "opacity-chatgpt-zen",
+    match = {
+        class = "^zen$",
+        title = "^ChatGPT.*",
+    },
     opacity = 0.8,
 })
 
@@ -35,6 +50,16 @@ hl.window_rule({
     name = "floating-rounding",
     match = { float = true },
     rounding = 20, -- Current Hyprland maximum; the old config used 25.
+})
+
+-- T3 Pets renders its own transparent, borderless surface.
+hl.window_rule({
+    name = "t3-pets-no-decorations",
+    match = { class = "^codes\\.t3\\.pets$" },
+    border_size = 0,
+    rounding = 0,
+    no_shadow = true,
+    no_blur = true,
 })
 
 hl.window_rule({
@@ -70,10 +95,18 @@ hl.window_rule({
 
 hl.window_rule({
     name = "vdi",
-    match = { class = "^Wfica$" },
+    match = { initial_class = "Wfica" },
     workspace = 3,
+    opacity = "0.88 override 0.88 override 0.88 override",
 })
 
+hl.window_rule({
+    name = "File Manager Transparency",
+    match = {
+        class = "^org.gnome.Nautilus$",
+    },
+    opacity = 0.8,
+})
 -- GNOME file picker portal. Pickers use an action verb in their title.
 hl.window_rule({
     name = "gnome-file-picker",
@@ -133,7 +166,6 @@ hl.window_rule({
         workspace = "w[tv1]",
     },
     border_size = 0,
-    rounding = 0,
 })
 
 hl.window_rule({
